@@ -2,6 +2,13 @@ import discord
 from discord.ext import commands
 import os
 import random
+from dotenv import load_dotenv
+from flask import Flask
+import threading
+
+# 加載環境變數
+load_dotenv() 
+print("DISCORD_TOKEN：", os.getenv("DISCORD_TOKEN"))
 
 # 設置 Discord 機器人
 intents = discord.Intents.default()
@@ -112,5 +119,19 @@ async def give_up(ctx):
 async def test(ctx):
     await ctx.send('機器人正常運作！')
 
-# 啟動 bot（請改成你的 Token）
-bot.run('MTM2NzkwMjg1MjIzOTk4MjY0Mw.GgbL6c.x6SlFD5cI_Wedi7T-ULIL5B4VqDeQXpP_9CVeo')
+# Flask Web 伺服器（防止 Render 休眠）
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return 'Bot is alive!'
+
+def run_flask():
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
+
+# 在執行緒中運行 Flask
+flask_thread = threading.Thread(target=run_flask)
+flask_thread.start()
+
+# 啟動 bot
+bot.run(os.getenv('DISCORD_TOKEN'))
